@@ -1483,7 +1483,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class QConProXMasterVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+class V1MMasterVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
@@ -1492,14 +1492,14 @@ private:
     int param_;
     
 public:
-    virtual ~QConProXMasterVUMeter_Midi_FeedbackProcessor() {}
-    QConProXMasterVUMeter_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int param) : Midi_FeedbackProcessor(csi, surface, widget), param_(param)
+    virtual ~V1MMasterVUMeter_Midi_FeedbackProcessor() {}
+    V1MMasterVUMeter_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int param) : Midi_FeedbackProcessor(csi, surface, widget), param_(param)
     {
         minDB_ = 0.0;
         maxDB_ = 24.0;
     }
     
-    virtual const char *GetName() override { return "QConProXMasterVUMeter_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "V1MMasterVUMeter_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {

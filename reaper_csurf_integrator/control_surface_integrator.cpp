@@ -616,9 +616,9 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
         {
             widget->GetFeedbackProcessors().push_back(make_unique<FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor>(csi_, this, widget));
         }
-        else if (widgetType == "FB_QConProXMasterVUMeter" && size == 2)
+        else if (widgetType == "FB_V1MMasterVUMeter" && size == 2)
         {
-            widget->GetFeedbackProcessors().push_back(make_unique<QConProXMasterVUMeter_Midi_FeedbackProcessor>(csi_, this, widget, atoi(tokenLines[i][1].c_str())));
+            widget->GetFeedbackProcessors().push_back(make_unique<V1MMasterVUMeter_Midi_FeedbackProcessor>(csi_, this, widget, atoi(tokenLines[i][1].c_str())));
         }
         else if ((widgetType == "FB_V1MVUMeter" || widgetType == "FB_V1MXVUMeter") && size == 2) //Kev Smart
         {
