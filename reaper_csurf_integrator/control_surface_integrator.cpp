@@ -679,17 +679,19 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
             else if (widgetType == "FB_MCUXTDisplayLower")
                 widget->GetFeedbackProcessors().push_back(make_unique<MCUDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 1, 0x15, 0x12, atoi(tokenLines[i][1].c_str())));
         }
-        else if ((widgetType == "FB_IconDisplay1Upper" || widgetType == "FB_IconDisplay1Lower" || widgetType == "FB_IconDisplay2Upper" || widgetType == "FB_IconDisplay2Lower") && size == 2)
+
+        else if ((widgetType == "FB_V1MDisplay1Upper" || widgetType == "FB_V1MDisplay1Lower" || widgetType == "FB_V1MDisplay2Upper" || widgetType == "FB_V1MDisplay2Lower") && size == 2) //Kev Smart
         {
-            if (widgetType == "FB_IconDisplay1Upper")
-                widget->GetFeedbackProcessors().push_back(make_unique<IconDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 0, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66));
-            else if (widgetType == "FB_IconDisplay1Lower")
-                widget->GetFeedbackProcessors().push_back(make_unique<IconDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 1, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66));
-            else if (widgetType == "FB_IconDisplay2Upper")
-                widget->GetFeedbackProcessors().push_back(make_unique<IconDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 0, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e));
-            else if (widgetType == "FB_IconDisplay2Lower")
-                widget->GetFeedbackProcessors().push_back(make_unique<IconDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 1, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e));
+            if (widgetType == "FB_V1MDisplay1Upper")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 0, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66));
+            else if (widgetType == "FB_V1MDisplay1Lower")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 1, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66));
+            else if (widgetType == "FB_V1MDisplay2Upper")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 0, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e));
+            else if (widgetType == "FB_V1MDisplay2Lower")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 1, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e));
         }
+
         else if ((widgetType == "FB_AsparionDisplayUpper" || widgetType == "FB_AsparionDisplayLower" || widgetType == "FB_AsparionDisplayEncoder") && size == 2)
         {
             if (widgetType == "FB_AsparionDisplayUpper")
