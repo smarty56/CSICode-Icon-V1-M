@@ -3338,51 +3338,31 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
     RecalculateModifiers();
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TrackNavigationManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TrackNavigationManager::RebuildTracks()
 {
-    int oldTracksSize = (int) tracks_.size();
-    bool hasChanged = false;
-  
-    if (oldTracksSize == GetNumTracks())
-    {
-        for (int i = 1; i <= GetNumTracks(); ++i)
-            if (MediaTrack* track = CSurf_TrackFromID(i, followMCP_))
-                if (tracks_[i] != track   || colors_[i] != GetTrackColor(track))
-                {
-                    hasChanged = true;
-                    break;
-                }
-    }
-    if ( ! hasChanged && isInitialized_)
-        return;
-
-    isInitialized_ = true;
+    int oldTracksSize = (int)tracks_.size();
+    int numTracks = GetNumTracks();
 
     tracks_.clear();
-    colors_.clear();
-
-    
-    for (int i = 1; i <= GetNumTracks(); ++i)
+    for (int i = 1; i <= numTracks; ++i)
     {
-        if (MediaTrack *track = CSurf_TrackFromID(i, followMCP_))
+        if (MediaTrack* track = CSurf_TrackFromID(i, followMCP_))
             if (IsTrackVisible(track, followMCP_))
-            {
                 tracks_.push_back(track);
-                colors_.push_back(GetTrackColor(track));
-            }
     }
-    
+
     if (tracks_.size() < oldTracksSize)
     {
         for (int i = oldTracksSize; i > tracks_.size(); i--)
             page_->ForceClearTrack(i - trackOffset_);
     }
-    
-    page_->ForceUpdateTrackColors();
+
+    page_->UpdateTrackColors();
 }
 
 void TrackNavigationManager::RebuildSelectedTracks()
@@ -3390,10 +3370,10 @@ void TrackNavigationManager::RebuildSelectedTracks()
     if (currentTrackVCAFolderMode_ != 3)
         return;
 
-    int oldTracksSize = (int) selectedTracks_.size();
-    
+    int oldTracksSize = (int)selectedTracks_.size();
+
     selectedTracks_.clear();
-    
+
     for (int i = 0; i < CountSelectedTracks2(NULL, false); ++i)
         selectedTracks_.push_back(DAW::GetSelectedTrack(i));
 
@@ -3402,9 +3382,8 @@ void TrackNavigationManager::RebuildSelectedTracks()
         for (int i = oldTracksSize; i > selectedTracks_.size(); i--)
             page_->ForceClearTrack(i - selectedTracksOffset_);
     }
-    
-    if (selectedTracks_.size() != oldTracksSize)
-        page_->ForceUpdateTrackColors();
+
+    page_->UpdateTrackColors();
 }
 
 void TrackNavigationManager::AdjustSelectedTrackBank(int amount)
@@ -3481,10 +3460,27 @@ void ControlSurface::ForceClearTrack(int trackNum)
             widget->ForceClear();
 }
 
-void ControlSurface::ForceUpdateTrackColors()
+void ControlSurface::UpdateTrackColors()
 {
-    for (auto trackColorFeedbackProcessor : trackColorFeedbackProcessors_)
-        trackColorFeedbackProcessor->ForceUpdateTrackColors();
+
+    bool hasChanged = false;
+
+    for (int i = 0; i < trackColors_.size(); ++i)
+        if (MediaTrack* track = page_->GetNavigatorForChannel(i + channelOffset_)->GetTrack())
+            if (trackColors_[i] != DAW::GetTrackColor(track))
+            {
+                hasChanged = true;
+                rgba_color trackColor = DAW::GetTrackColor(track);
+                trackColors_[i].r = trackColor.r;
+                trackColors_[i].g = trackColor.g;
+                trackColors_[i].b = trackColor.b;
+                trackColors_[i].a = trackColor.a;
+            }
+
+    if (hasChanged)
+        for (auto trackColorFeedbackProcessor : trackColorFeedbackProcessors_)
+            trackColorFeedbackProcessor->ForceUpdateTrackColors();
+
 }
 
 rgba_color ControlSurface::GetTrackColorForChannel(int channel)

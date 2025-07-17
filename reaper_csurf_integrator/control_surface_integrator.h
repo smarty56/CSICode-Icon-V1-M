@@ -2155,6 +2155,7 @@ private:
     int doublePressTime_ = 400;
     
     vector<FeedbackProcessor *> trackColorFeedbackProcessors_; // does not own pointers
+    vector<rgba_color> trackColors_;
     
     vector<ChannelTouch> channelTouches_;
     vector<ChannelToggle> channelToggles_;
@@ -2297,7 +2298,7 @@ public:
         
     virtual void RequestUpdate();
     void ForceClearTrack(int trackNum);
-    void ForceUpdateTrackColors();
+    void UpdateTrackColors();
     void OnTrackSelection(MediaTrack *track);
     virtual void SendOSCMessage(const char *zoneName) {}
     virtual void SendOSCMessage(const char *zoneName, int value) {}
@@ -2451,8 +2452,17 @@ public:
            
     void AddTrackColorFeedbackProcessor(FeedbackProcessor *feedbackProcessor) // does not own this pointer
     {
+
         if (feedbackProcessor != NULL)
-        trackColorFeedbackProcessors_.push_back(feedbackProcessor);
+        {
+            trackColorFeedbackProcessors_.push_back(feedbackProcessor);
+
+            for (int i = 0; i < numChannels_; ++i)
+            {
+                trackColors_.push_back(rgba_color());
+            }
+        }
+
     }
         
     void ForceClear()
@@ -3804,12 +3814,12 @@ public:
             surface->ForceClearTrack(trackNum);
     }
     
-    void ForceUpdateTrackColors()
+    void UpdateTrackColors()
     {
-        for (auto &surface : surfaces_)
-            surface->ForceUpdateTrackColors();
+        for (auto& surface : surfaces_)
+            surface->UpdateTrackColors();
     }
-      
+
     bool GetTouchState(MediaTrack *track, int touchedControl)
     {
         return trackNavigationManager_->GetIsControlTouched(track, touchedControl);
