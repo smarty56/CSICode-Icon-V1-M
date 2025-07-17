@@ -1,19 +1,18 @@
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class V1MVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor  // Linked to widget "FB_V1MVUMeter" Kev Smart 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
     int displayType_;
     int channelNumber_;
-    int lastMidiValue_;
+    int currentMidiValue_;
     bool isClipOn_;
 
 public:
     virtual ~V1MVUMeter_Midi_FeedbackProcessor() {}
     V1MVUMeter_Midi_FeedbackProcessor(CSurfIntegrator* const csi, Midi_ControlSurface* surface, Widget* widget, int displayType, int channelNumber) : Midi_FeedbackProcessor(csi, surface, widget), displayType_(displayType), channelNumber_(channelNumber)
     {
-        lastMidiValue_ = 0;
+        currentMidiValue_ = 0;
         isClipOn_ = false;
     }
 
@@ -25,59 +24,52 @@ public:
         ForceValue(properties, 0.0);
     }
 
+    int UpdateMidiValue(const PropertyList& properties, double value)
+    {
+        double   dbValue = VAL2DB(normalizedToVol(value));
+        int newMidiValue = GetMidiValue(properties, dbValue);
+        if (dbValue >= -60.0 || newMidiValue != currentMidiValue_)
+        {
+            currentMidiValue_ = newMidiValue;
+            return true;
+        }
+        return false;
+    }
+
     virtual void SetValue(const PropertyList& properties, double value) override
     {
-        int midiValue = GetMidiValue(properties, value);
-        if (midiValue != -1)
+        if (UpdateMidiValue(properties, value))
         {
-            SendMidiMessage(0xd0, (channelNumber_ << 4) | midiValue, 0);
+            SendMidiMessage(0xd0, (channelNumber_ << 4) | currentMidiValue_, 0);
         }
     }
 
     virtual void ForceValue(const PropertyList& properties, double value) override
     {
-        ForceMidiMessage(0xd0, (channelNumber_ << 4) | GetMidiValue(properties, value), 0);
+        UpdateMidiValue(properties, value);
+        ForceMidiMessage(0xd0, (channelNumber_ << 4) | currentMidiValue_, 0);
     }
 
-    int GetMidiValue(const PropertyList& properties, double value)
+    int GetMidiValue(const PropertyList& properties, double dbValue)
     {
-        int    midiValue = -1;
-        double   dbValue = VAL2DB(normalizedToVol(value));
+        int newMidiValue = 0x00;
+        if (dbValue >= -60.1 && dbValue < -48.1)		newMidiValue = 0x01; // LED 1 Green  (–60 dB)
+        else if (dbValue >= -48.1 && dbValue < -42.1)  	newMidiValue = 0x02; // LED 2 Green  (–48 dB)
+        else if (dbValue >= -42.1 && dbValue < -36.1)  	newMidiValue = 0x03; // LED 3 Green  (–42 dB)
+        else if (dbValue >= -36.1 && dbValue < -30.1)  	newMidiValue = 0x04; // LED 4 Green  (–36 dB)
+        else if (dbValue >= -30.1 && dbValue < -24.1)  	newMidiValue = 0x05; // LED 5 Green  (–30 dB)
+        else if (dbValue >= -24.1 && dbValue < -18.1)  	newMidiValue = 0x06; // LED 6 Green  (–24 dB)
+        else if (dbValue >= -18.1 && dbValue < -12.1)  	newMidiValue = 0x07; // LED 7 Green  (–18 dB)
+        else if (dbValue >= -12.1 && dbValue < -9.1)  	newMidiValue = 0x08; // LED 8 Orange (–12 dB)
+        else if (dbValue >= -9.1 && dbValue < -6.1)  	newMidiValue = 0x09; // LED 9 Orange (–9 dB)
+        else if (dbValue >= -6.1 && dbValue < -3.1)  	newMidiValue = 0x0A; // LED 10 Orange (–6 dB)
+        else if (dbValue >= -3.1 && dbValue < 0.1)  	newMidiValue = 0x0B; // LED 11 Orange (–3 dB)
+        else if (dbValue >= 0.1)                      	newMidiValue = 0x0E; // LED 12 Red    (> 0 dB)
 
-        //---------------------------------------------------
-        // HANDLE METER SPECIFIC SCALING, DEFAULT IS "XTOUCH"
-        //---------------------------------------------------
-        const char* meterMode = nullptr;
+        if (newMidiValue > 0)
+            WindowsOutputDebugString("track=%d   midvalue=0x%02x\n",  channelNumber_, newMidiValue);
 
-        //PropertyType propertyType = properties.prop_from_string("MeterMode");
-        //if (propertyType)
-        //    meterMode = (char*)properties.get_prop(propertyType);
-        //if (!meterMode)
-        //    meterMode = "XTOUCH";
-
-        if (dbValue >= -100.1 && dbValue < -60.1)  midiValue = 0x00;  //No LEDs
-        else if (dbValue >= -60.1 && dbValue < -48.1)  midiValue = 0x01; // LED 1 Green  (–60 dB)
-        else if (dbValue >= -48.1 && dbValue < -42.1)  midiValue = 0x02; // LED 2 Green  (–48 dB)
-        else if (dbValue >= -42.1 && dbValue < -36.1)  midiValue = 0x03; // LED 3 Green  (–42 dB)
-        else if (dbValue >= -36.1 && dbValue < -30.1)  midiValue = 0x04; // LED 4 Green  (–36 dB)
-        else if (dbValue >= -30.1 && dbValue < -24.1)  midiValue = 0x05; // LED 5 Green  (–30 dB)
-        else if (dbValue >= -24.1 && dbValue < -18.1)  midiValue = 0x06; // LED 6 Green  (–24 dB)
-        else if (dbValue >= -18.1 && dbValue < -12.1)  midiValue = 0x07; // LED 7 Green  (–18 dB)
-        else if (dbValue >= -12.1 && dbValue < -9.1)  midiValue = 0x08; // LED 8 Orange (–12 dB)
-        else if (dbValue >= -9.1 && dbValue < -6.1)  midiValue = 0x09; // LED 9 Orange (–9 dB)
-        else if (dbValue >= -6.1 && dbValue < -3.1)  midiValue = 0x0A; // LED 10 Orange (–6 dB)
-        else if (dbValue >= -3.1 && dbValue < 0.1)  midiValue = 0x0B; // LED 11 Orange (–3 dB)
-        else if (dbValue >= 0.1)                      midiValue = 0x0E; // LED 12 Red    (> 0 dB)
-
-
-        //---------------------------------------------------//
-        // SCALING COMPLETED - RETURN VALUE                  //
-        //---------------------------------------------------//
-
-        if (midiValue > 0)
-            WindowsOutputDebugString("MeterMode=%s   track=%d   midvalue=0x%02x\n", meterMode, channelNumber_, midiValue);
-
-        return  midiValue;
+        return  newMidiValue;
     }
 };
 
@@ -86,16 +78,12 @@ class V1MMasterVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    double minDB_;
-    double maxDB_;
     int param_;
 
 public:
     virtual ~V1MMasterVUMeter_Midi_FeedbackProcessor() {}
     V1MMasterVUMeter_Midi_FeedbackProcessor(CSurfIntegrator* const csi, Midi_ControlSurface* surface, Widget* widget, int param) : Midi_FeedbackProcessor(csi, surface, widget), param_(param)
     {
-        minDB_ = 0.0;
-        maxDB_ = 24.0;
     }
 
     virtual const char* GetName() override { return "V1MMasterVUMeter_Midi_FeedbackProcessor"; }
@@ -106,34 +94,33 @@ public:
         ForceValue(properties, 0.0);
     }
 
-    int GetMidiMeterValue(double value)
-    {
-        int      midiValue = 0;
-        double   dbValue = VAL2DB(normalizedToVol(value));
-        if (dbValue >= -60.1 && dbValue < -48.1)  midiValue = 0x01; // LED  1 Green  (–60 dB)
-        else if (dbValue >= -48.1 && dbValue < -42.1)  midiValue = 0x02; // LED  2 Green  (–48 dB)
-        else if (dbValue >= -42.1 && dbValue < -36.1)  midiValue = 0x03; // LED  3 Green  (–42 dB)
-        else if (dbValue >= -36.1 && dbValue < -30.1)  midiValue = 0x04; // LED  4 Green  (–36 dB)
-        else if (dbValue >= -30.1 && dbValue < -24.1)  midiValue = 0x05; // LED  5 Green  (–30 dB)
-        else if (dbValue >= -24.1 && dbValue < -18.1)  midiValue = 0x06; // LED  6 Green  (–24 dB)
-        else if (dbValue >= -18.1 && dbValue < -12.1)  midiValue = 0x07; // LED  7 Green  (–18 dB)
-        else if (dbValue >= -12.1 && dbValue < -9.1)  midiValue = 0x08; // LED  8 Orange (–12 dB)
-        else if (dbValue >= -9.1 && dbValue < -6.1)  midiValue = 0x09; // LED  9 Orange (–9  dB)
-        else if (dbValue >= -6.1 && dbValue < -3.1)  midiValue = 0x0A; // LED 10 Orange (–6  dB)
-        else if (dbValue >= -3.1 && dbValue < 0.1)  midiValue = 0x0B; // LED 11 Orange (–3  dB)
-        else if (dbValue >= 0.1)  midiValue = 0x0E; // LED 12 Red    (> 0 dB)
-        return midiValue;
-    }
-
     virtual void SetValue(const PropertyList& properties, double value) override
     {
-        WindowsOutputDebugString("QConProXMasterVUMeter_Midi_FeedbackProcessor: 0xd1, 0x%02x\n", (param_ << 4) | GetMidiMeterValue(value));
         SendMidiMessage(0xd1, (param_ << 4) | GetMidiMeterValue(value), 0);
     }
 
     virtual void ForceValue(const PropertyList& properties, double value) override
     {
         ForceMidiMessage(0xd1, (param_ << 4) | GetMidiMeterValue(value), 0);
+    }
+
+    int GetMidiMeterValue(double value)
+    {
+        int      midiValue = 0;
+        double   dbValue = VAL2DB(normalizedToVol(value));
+        if (dbValue >= -60.1 && dbValue < -48.1)        midiValue = 0x01; // LED  1 Green  (–60 dB)
+        else if (dbValue >= -48.1 && dbValue < -42.1)   midiValue = 0x02; // LED  2 Green  (–48 dB)
+        else if (dbValue >= -42.1 && dbValue < -36.1)   midiValue = 0x03; // LED  3 Green  (–42 dB)
+        else if (dbValue >= -36.1 && dbValue < -30.1)   midiValue = 0x04; // LED  4 Green  (–36 dB)
+        else if (dbValue >= -30.1 && dbValue < -24.1)   midiValue = 0x05; // LED  5 Green  (–30 dB)
+        else if (dbValue >= -24.1 && dbValue < -18.1)   midiValue = 0x06; // LED  6 Green  (–24 dB)
+        else if (dbValue >= -18.1 && dbValue < -12.1)   midiValue = 0x07; // LED  7 Green  (–18 dB)
+        else if (dbValue >= -12.1 && dbValue < -9.1)    midiValue = 0x08; // LED  8 Orange (–12 dB)
+        else if (dbValue >= -9.1 && dbValue < -6.1)     midiValue = 0x09; // LED  9 Orange (–9  dB)
+        else if (dbValue >= -6.1 && dbValue < -3.1)     midiValue = 0x0A; // LED 10 Orange (–6  dB)
+        else if (dbValue >= -3.1 && dbValue < 0.1)      midiValue = 0x0B; // LED 11 Orange (–3  dB)
+        else if (dbValue >= 0.1)                        midiValue = 0x0E; // LED 12 Red    (> 0 dB)
+        return midiValue;
     }
 };
 

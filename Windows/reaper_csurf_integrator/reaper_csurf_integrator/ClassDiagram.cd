@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="V1MVUMeter_Midi_FeedbackProcessor" Collapsed="true">
+    <Position X="15.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAQAAQAgEAAAAAEQAAAAAAAAEAAAAIAAAAJAA=</HashCode>
+      <FileName>C:\Users\kev\Documents\GitHub\CSICode-Icon-V1-M\reaper_csurf_integrator\control_surface_midi_widgets_V1M.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="V1MMasterVUMeter_Midi_FeedbackProcessor" Collapsed="true">
+    <Position X="17" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAFAAAAAQAACAgAAAAAAAAAAAAAAAAEAAAAIAAAABAA=</HashCode>
+      <FileName>C:\Users\kev\Documents\GitHub\CSICode-Icon-V1-M\reaper_csurf_integrator\control_surface_midi_widgets_V1M.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="V1MDisplay_Midi_FeedbackProcessor" Collapsed="true">
+    <Position X="15.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAGgAISABAgBAEIgAAAAAAAAAACEAAQAIAAAgBAA=</HashCode>
+      <FileName>C:\Users\kev\Documents\GitHub\CSICode-Icon-V1-M\reaper_csurf_integrator\control_surface_midi_widgets_V1M.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
